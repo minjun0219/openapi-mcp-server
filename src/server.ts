@@ -30,10 +30,11 @@ export function buildServer(
   config: OpenApiMcpConfig,
   options: BuildServerOptions = {},
 ): ServerHandle {
-  const fetcher = createFetcher({
-    timeoutMs: config.http?.timeoutMs,
-    insecureTls: config.http?.insecureTls,
-  });
+  const fetcherOptions: Parameters<typeof createFetcher>[0] = {};
+  if (config.http?.timeoutMs !== undefined) fetcherOptions.timeoutMs = config.http.timeoutMs;
+  if (config.http?.insecureTls !== undefined) fetcherOptions.insecureTls = config.http.insecureTls;
+  if (config.http?.extraCaCerts !== undefined) fetcherOptions.extraCaCerts = config.http.extraCaCerts;
+  const fetcher = createFetcher(fetcherOptions);
   const diskCacheEnabled = config.cache?.diskCache ?? true;
   const diskCache = diskCacheEnabled
     ? createDiskCache(config.cache?.diskCachePath ?? defaultDiskCacheDir())

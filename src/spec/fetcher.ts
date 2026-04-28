@@ -38,6 +38,7 @@ export interface ConditionalHeaders {
 export interface FetcherOptions {
   timeoutMs?: number;
   insecureTls?: boolean;
+  extraCaCerts?: string[];
 }
 
 export interface SpecFetcher {
@@ -136,10 +137,35 @@ class DefaultSpecFetcher implements SpecFetcher {
   }
 
   private async getDispatcher(): Promise<unknown> {
-    if (!this.options.insecureTls) return undefined;
+    const wantsCustomTls =
+      this.options.insecureTls === true ||
+      (this.options.extraCaCerts !== undefined && this.options.extraCaCerts.length > 0);
+    if (!wantsCustomTls) return undefined;
     if (this.dispatcher) return this.dispatcher;
+
     const { Agent } = await import('undici');
-    this.dispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+    const connect: Record<string, unknown> = {};
+    if (this.options.insecureTls) {
+      connect['rejectUnauthorized'] = false;
+    } else if (this.options.extraCaCerts && this.options.extraCaCerts.length > 0) {
+      const { readFile } = await import('node:fs/promises');
+      const cas = await Promise.all(
+        this.options.extraCaCerts.map(async (p) => {
+          try {
+            return await readFile(p, 'utf8');
+          } catch (err) {
+            const reason = err instanceof Error ? err.message : String(err);
+            throw new SpecFetchError(
+              `failed to read extraCaCerts entry '${p}': ${reason}`,
+              undefined,
+              err,
+            );
+          }
+        }),
+      );
+      connect['ca'] = cas;
+    }
+    this.dispatcher = new Agent({ connect });
     return this.dispatcher;
   }
 }

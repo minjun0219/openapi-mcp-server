@@ -368,7 +368,9 @@ class InMemorySpecRegistry implements SpecRegistry {
   }
 
   private cacheKey(specName: string, source: SpecSource): string {
-    return `${specName}::${source.type === 'url' ? source.url : source.path}`;
+    const target = source.type === 'url' ? source.url : source.path;
+    const format = source.format ?? 'auto';
+    return `${specName}::${source.type}::${target}::${format}`;
   }
 
   private requireSpec(specName: string): SpecConfig {

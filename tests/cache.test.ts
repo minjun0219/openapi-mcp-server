@@ -178,6 +178,30 @@ describe('caching behaviour', () => {
     expect(indexed.byOperationId.get('addPet')).toBeDefined();
   });
 
+  it('keeps cache entries with the same path but different format hints separate', async () => {
+    const dir = makeTempDir();
+    const disk = createDiskCache(dir);
+    const body = await loadBody();
+    const fetcher = new ProgrammableFetcher(body);
+    const config: OpenApiMcpConfig = {
+      specs: {
+        primary: {
+          source: { type: 'file', path: PETSTORE_3, format: 'auto' },
+          environments: {
+            dev: {
+              baseUrl: 'https://api.dev.example.com/petstore',
+              source: { type: 'file', path: PETSTORE_3, format: 'openapi3' },
+            },
+          },
+        },
+      },
+    };
+    const reg = createSpecRegistry(config, fetcher, { diskCache: disk });
+    await reg.loadSpec('primary');           // default source: format=auto
+    await reg.loadSpec('primary', 'dev');    // env override: format=openapi3
+    expect(fetcher.fetchCount).toBe(2);
+  });
+
   it('refresh_spec drops cache and re-fetches without conditional headers', async () => {
     const dir = makeTempDir();
     const disk = createDiskCache(dir);

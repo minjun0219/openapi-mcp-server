@@ -30,15 +30,14 @@ async function main(): Promise<void> {
   const opts = program.opts<CliOptions>();
   const logger = initLogger(opts.logLevel ?? 'info');
 
-  if (opts.insecureTls) {
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    logger.warn('TLS certificate verification disabled (--insecure-tls)');
-  }
-
   const configPath = opts.config ?? defaultConfigPath();
 
   try {
     const { config, path: resolved } = await loadConfig(configPath);
+    if (opts.insecureTls) {
+      logger.warn('TLS certificate verification disabled (--insecure-tls)');
+      config.http = { ...(config.http ?? {}), insecureTls: true };
+    }
     logger.info({ config: resolved, specs: Object.keys(config.specs) }, 'config loaded');
     await startStdioServer(config, { configDir: path.dirname(resolved) });
   } catch (err) {

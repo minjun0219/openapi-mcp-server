@@ -157,6 +157,6 @@ npm run build          # dist/ 빌드
 
 테스트 fixtures: `tests/fixtures/petstore-3.0.json`,
 `petstore-3.0.yaml`, `petstore-2.0.json`. 사내 spec 으로 교체하려면
-같은 디렉토리에 추가하고 `tests/multi-spec-config.json` 을 수정하세요.
+같은 디렉토리에 추가하고 `tests/fixtures/multi-spec-config.json` 을 수정하세요.
 
 세부 아키텍처와 절대 어기지 말 것 목록은 [CLAUDE.md](./CLAUDE.md).

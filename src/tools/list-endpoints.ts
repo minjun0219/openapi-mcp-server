@@ -6,7 +6,9 @@ import { filterEndpoints, type EndpointFilter } from '../search/filter.js';
 import { errorResult, jsonResult } from './responses.js';
 import type { HttpMethod, IndexedEndpoint } from '../spec/indexer.js';
 
-const HTTP_METHOD_VALUES = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
+const HTTP_METHOD_VALUES = [
+  'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'TRACE',
+] as const;
 
 const inputSchema = {
   spec: z
