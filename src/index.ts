@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import path from 'node:path';
 import { Command } from 'commander';
 import { defaultConfigPath } from './config/defaults.js';
 import { ConfigError, loadConfig } from './config/loader.js';
@@ -39,7 +40,7 @@ async function main(): Promise<void> {
   try {
     const { config, path: resolved } = await loadConfig(configPath);
     logger.info({ config: resolved, specs: Object.keys(config.specs) }, 'config loaded');
-    await startStdioServer(config);
+    await startStdioServer(config, { configDir: path.dirname(resolved) });
   } catch (err) {
     if (err instanceof ConfigError) {
       logger.error({ err: err.message }, 'failed to load config');

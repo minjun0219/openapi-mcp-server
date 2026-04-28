@@ -59,7 +59,7 @@ YML 어느 것이든 받습니다.
 
 | 필드 | 설명 |
 | ---- | ---- |
-| `specs.<name>.source` | `{ type: 'url', url }` 또는 `{ type: 'file', path }`. 파일은 상대경로 OK. `format` 으로 `openapi3` / `swagger2` / `auto` 중 강제 가능 (기본 `auto`). |
+| `specs.<name>.source` | `{ type: 'url', url }` 또는 `{ type: 'file', path }`. **상대경로는 config 파일 디렉토리 기준**으로 해석됩니다 (CWD 아님). `format` 으로 `openapi3` / `swagger2` / `auto` 중 강제 가능 (기본 `auto`). |
 | `specs.<name>.environments.<env>.baseUrl` | 실제 API base URL. `get_endpoint` 가 path 와 합성해 `fullUrl` 로 응답. |
 | `specs.<name>.environments.<env>.source` | 환경별 spec source override (옵션). |
 | `specs.<name>.cacheTtlSeconds` | 백그라운드 재검증 주기 (기본 300초). |

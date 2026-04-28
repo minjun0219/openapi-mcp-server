@@ -21,7 +21,15 @@ export interface ServerHandle {
   registry: SpecRegistry;
 }
 
-export function buildServer(config: OpenApiMcpConfig): ServerHandle {
+export interface BuildServerOptions {
+  /** Directory of the loaded config file; used to resolve relative `file` source paths. */
+  configDir?: string;
+}
+
+export function buildServer(
+  config: OpenApiMcpConfig,
+  options: BuildServerOptions = {},
+): ServerHandle {
   const fetcher = createFetcher({
     timeoutMs: config.http?.timeoutMs,
     insecureTls: config.http?.insecureTls,
@@ -30,7 +38,10 @@ export function buildServer(config: OpenApiMcpConfig): ServerHandle {
   const diskCache = diskCacheEnabled
     ? createDiskCache(config.cache?.diskCachePath ?? defaultDiskCacheDir())
     : createNoopDiskCache();
-  const registry = createSpecRegistry(config, fetcher, { diskCache });
+  const registry = createSpecRegistry(config, fetcher, {
+    diskCache,
+    ...(options.configDir ? { configDir: options.configDir } : {}),
+  });
 
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
@@ -50,8 +61,11 @@ export function buildServer(config: OpenApiMcpConfig): ServerHandle {
   return { server, registry };
 }
 
-export async function startStdioServer(config: OpenApiMcpConfig): Promise<ServerHandle> {
-  const handle = buildServer(config);
+export async function startStdioServer(
+  config: OpenApiMcpConfig,
+  options: BuildServerOptions = {},
+): Promise<ServerHandle> {
+  const handle = buildServer(config, options);
   const transport = new StdioServerTransport();
   await handle.server.connect(transport);
   getLogger().info(

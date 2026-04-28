@@ -49,6 +49,8 @@ export function createFetcher(options: FetcherOptions = {}): SpecFetcher {
 }
 
 class DefaultSpecFetcher implements SpecFetcher {
+  private dispatcher: unknown;
+
   constructor(private readonly options: FetcherOptions) {}
 
   async fetch(source: SpecSource, conditional?: ConditionalHeaders): Promise<FetchOutcome> {
@@ -79,6 +81,7 @@ class DefaultSpecFetcher implements SpecFetcher {
     conditional?: ConditionalHeaders,
   ): Promise<FetchOutcome> {
     const { request } = await import('undici');
+    const dispatcher = await this.getDispatcher();
     const headers: Record<string, string> = {
       Accept: 'application/json, application/yaml;q=0.9, text/yaml;q=0.9, */*;q=0.1',
     };
@@ -96,6 +99,7 @@ class DefaultSpecFetcher implements SpecFetcher {
         method: 'GET',
         headers,
         signal: controller.signal,
+        ...(dispatcher ? { dispatcher: dispatcher as never } : {}),
       });
 
       const fetchedAt = new Date().toISOString();
@@ -129,6 +133,14 @@ class DefaultSpecFetcher implements SpecFetcher {
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private async getDispatcher(): Promise<unknown> {
+    if (!this.options.insecureTls) return undefined;
+    if (this.dispatcher) return this.dispatcher;
+    const { Agent } = await import('undici');
+    this.dispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+    return this.dispatcher;
   }
 }
 

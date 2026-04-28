@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type {
   EnvironmentConfig,
   OpenApiMcpConfig,
@@ -73,6 +74,12 @@ export class UnknownEnvironmentError extends Error {
 
 export interface SpecRegistryOptions {
   diskCache?: DiskCache;
+  /**
+   * Directory used to resolve relative `file` source paths. Typically the
+   * directory that contains the loaded config file. When omitted, relative
+   * paths fall back to `process.cwd()`.
+   */
+  configDir?: string;
 }
 
 export function createSpecRegistry(
@@ -80,7 +87,12 @@ export function createSpecRegistry(
   fetcher: SpecFetcher,
   options: SpecRegistryOptions = {},
 ): SpecRegistry {
-  return new InMemorySpecRegistry(config, fetcher, options.diskCache ?? createNoopDiskCache());
+  return new InMemorySpecRegistry(
+    config,
+    fetcher,
+    options.diskCache ?? createNoopDiskCache(),
+    options.configDir,
+  );
 }
 
 class InMemorySpecRegistry implements SpecRegistry {
@@ -92,6 +104,7 @@ class InMemorySpecRegistry implements SpecRegistry {
     private readonly config: OpenApiMcpConfig,
     private readonly fetcher: SpecFetcher,
     private readonly diskCache: DiskCache,
+    private readonly configDir?: string,
   ) {}
 
   hasSpec(specName: string): boolean {
@@ -193,7 +206,9 @@ class InMemorySpecRegistry implements SpecRegistry {
     const disk = await this.diskCache.read(key);
     if (disk) {
       try {
-        const parsed = await parseSpecObject(disk.document, source.format);
+        // Disk cache always stores documents already converted to OpenAPI 3.0,
+        // so hydration must not re-apply the original (possibly swagger2) hint.
+        const parsed = await parseSpecObject(disk.document, 'openapi3');
         const indexed = indexSpec(specName, parsed.document);
         const cached: CachedSpec = {
           indexed,
@@ -337,12 +352,19 @@ class InMemorySpecRegistry implements SpecRegistry {
     spec: SpecConfig,
     environment?: string,
   ): SpecSource {
+    let source: SpecSource = spec.source;
     if (environment) {
       const env = spec.environments[environment];
       if (!env) throw new UnknownEnvironmentError(specName, environment);
-      if (env.source) return env.source;
+      if (env.source) source = env.source;
     }
-    return spec.source;
+    return this.resolveFilePath(source);
+  }
+
+  private resolveFilePath(source: SpecSource): SpecSource {
+    if (source.type !== 'file' || path.isAbsolute(source.path)) return source;
+    const baseDir = this.configDir ?? process.cwd();
+    return { ...source, path: path.resolve(baseDir, source.path) };
   }
 
   private cacheKey(specName: string, source: SpecSource): string {

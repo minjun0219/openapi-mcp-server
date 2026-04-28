@@ -13,9 +13,10 @@ import type {
   FetchOutcome,
   SpecFetcher,
 } from '../src/spec/fetcher.js';
-import type { OpenApiMcpConfig } from '../src/config/schema.js';
+import type { OpenApiMcpConfig, SpecSource } from '../src/config/schema.js';
 
 const PETSTORE_3 = path.resolve('tests/fixtures/petstore-3.0.json');
+const PETSTORE_2 = path.resolve('tests/fixtures/petstore-2.0.json');
 
 class ProgrammableFetcher implements SpecFetcher {
   fetchCount = 0;
@@ -125,6 +126,56 @@ describe('caching behaviour', () => {
 
     expect(fetcher.fetchCount).toBe(2);
     expect(fetcher.conditionalCalls[1]).toEqual({ etag: 'abc' });
+  });
+
+  it('hydrates a swagger2-formatted source from disk without re-fetching', async () => {
+    const dir = makeTempDir();
+    const disk = createDiskCache(dir);
+    const swaggerBody = await readFile(PETSTORE_2, 'utf8');
+    const config: OpenApiMcpConfig = {
+      specs: {
+        petstore: {
+          source: { type: 'file', path: PETSTORE_2, format: 'swagger2' },
+          environments: { dev: { baseUrl: 'https://api.dev.example.com/petstore' } },
+          cacheTtlSeconds: 3600,
+        },
+      },
+    };
+    const fetcher1 = new ProgrammableFetcher(swaggerBody);
+    const reg1 = createSpecRegistry(config, fetcher1, { diskCache: disk });
+    await reg1.loadSpec('petstore', 'dev');
+    expect(fetcher1.fetchCount).toBe(1);
+
+    const fetcher2 = new ProgrammableFetcher(swaggerBody);
+    const reg2 = createSpecRegistry(config, fetcher2, { diskCache: disk });
+    const indexed = await reg2.loadSpec('petstore', 'dev');
+    expect(fetcher2.fetchCount).toBe(0);
+    expect(indexed.document.openapi).toMatch(/^3\./);
+  });
+
+  it('resolves relative file source paths against configDir', async () => {
+    const dir = makeTempDir();
+    const subdir = path.join(dir, 'specs');
+    const { mkdirSync, writeFileSync } = await import('node:fs');
+    mkdirSync(subdir, { recursive: true });
+    const target = path.join(subdir, 'pet.json');
+    const body = await readFile(PETSTORE_3, 'utf8');
+    writeFileSync(target, body);
+
+    const relativeSource: SpecSource = { type: 'file', path: './specs/pet.json' };
+    const config: OpenApiMcpConfig = {
+      specs: {
+        petstore: {
+          source: relativeSource,
+          environments: { dev: { baseUrl: 'https://api.dev.example.com/petstore' } },
+        },
+      },
+    };
+    // Real fetcher (not mocked) so we exercise the actual readFile path.
+    const { createFetcher } = await import('../src/spec/fetcher.js');
+    const reg = createSpecRegistry(config, createFetcher(), { configDir: dir });
+    const indexed = await reg.loadSpec('petstore', 'dev');
+    expect(indexed.byOperationId.get('addPet')).toBeDefined();
   });
 
   it('refresh_spec drops cache and re-fetches without conditional headers', async () => {
