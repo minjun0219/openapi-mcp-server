@@ -101,6 +101,18 @@ describe('SpecRegistry', () => {
     expect(fetcher.fetchCount).toBe(2);
   });
 
+  it('loads a Swagger 2.0 spec and serves it as OpenAPI 3', async () => {
+    const swaggerBody = await readFile(
+      path.resolve('tests/fixtures/petstore-2.0.json'),
+      'utf8',
+    );
+    const fetcher = new CountingFetcher(swaggerBody);
+    const reg = createSpecRegistry(makeConfig(), fetcher);
+    const indexed = await reg.loadSpec('petstore', 'dev');
+    expect(indexed.byOperationId.get('addPet')?.path).toBe('/pet');
+    expect(indexed.document.openapi).toMatch(/^3\./);
+  });
+
   it('refresh() clears cache and re-fetches', async () => {
     const fetcher = new CountingFetcher(body);
     const reg = createSpecRegistry(makeConfig(), fetcher);
