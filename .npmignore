@@ -1,0 +1,12 @@
+src/
+tests/
+examples/
+.vscode/
+.idea/
+.gitignore
+.eslintrc*
+eslint.config.*
+tsconfig*.json
+vitest.config.ts
+coverage/
+*.test.*
