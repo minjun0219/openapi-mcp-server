@@ -1,0 +1,43 @@
+# openapi-mcp configuration example
+# Default location: ~/.config/openapi-mcp/openapi-mcp.json
+# Override with: openapi-mcp --config /path/to/config.{json,yaml,yml}
+
+specs:
+  payment:
+    description: 결제 도메인 API
+    source:
+      type: url
+      url: https://swagger.dev.internal/payment/v3/api-docs
+    environments:
+      dev:
+        baseUrl: https://api.dev.internal/payment
+        description: Internal dev cluster
+      stage:
+        baseUrl: https://api.stage.internal/payment
+      sandbox:
+        baseUrl: https://api.sandbox.internal/payment
+        # Per-environment spec source override (e.g. sandbox publishes a
+        # different swagger document than dev/stage).
+        source:
+          type: url
+          url: https://swagger.sandbox.internal/payment/v3/api-docs
+    cacheTtlSeconds: 300
+
+  order:
+    description: 주문 도메인 API (file-backed)
+    source:
+      type: file
+      path: ./specs/order-v2.json
+    environments:
+      dev:
+        baseUrl: https://api.dev.internal/order
+
+cache:
+  diskCache: true
+  # diskCachePath: /var/cache/openapi-mcp
+
+http:
+  timeoutMs: 10000
+  # insecureTls: true            # for self-signed internal TLS
+  # extraCaCerts:                # absolute paths only
+  #   - /etc/ssl/internal-ca.pem
