@@ -1,8 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { OpenApiMcpConfig } from './config/schema.js';
+import { defaultDiskCacheDir } from './config/defaults.js';
 import { createFetcher } from './spec/fetcher.js';
 import { createSpecRegistry, type SpecRegistry } from './spec/registry.js';
+import { createDiskCache, createNoopDiskCache } from './cache/disk.js';
 import { registerListSpecs } from './tools/list-specs.js';
 import { registerListEnvironments } from './tools/list-environments.js';
 import { registerListTags } from './tools/list-tags.js';
@@ -24,7 +26,11 @@ export function buildServer(config: OpenApiMcpConfig): ServerHandle {
     timeoutMs: config.http?.timeoutMs,
     insecureTls: config.http?.insecureTls,
   });
-  const registry = createSpecRegistry(config, fetcher);
+  const diskCacheEnabled = config.cache?.diskCache ?? true;
+  const diskCache = diskCacheEnabled
+    ? createDiskCache(config.cache?.diskCachePath ?? defaultDiskCacheDir())
+    : createNoopDiskCache();
+  const registry = createSpecRegistry(config, fetcher, { diskCache });
 
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
