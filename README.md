@@ -1,5 +1,28 @@
 # openapi-mcp
 
+> ⚠️ **이 저장소는 [`minjun0219/agent-toolkit`](https://github.com/minjun0219/agent-toolkit) 으로 흡수되었습니다 (v0.2 부터).**
+> 코어 (deref / swagger 2→3 / conditional GET / 디스크 캐시) 는 그대로 이식됐고,
+> tool 이름은 다음과 같이 1:1 로 매핑됩니다 (개수: 6 → 7):
+>
+> | 기존 (이 저장소) | 신규 (agent-toolkit `openapi_*`) |
+> | --- | --- |
+> | `list_specs` + `list_environments` | `openapi_envs` (한 평면 리스트로 통합) |
+> | `list_tags` | `openapi_tags` |
+> | `list_endpoints` | `openapi_search` (동일 입력 + 점수화 검색) |
+> | `get_endpoint` | `openapi_endpoint` |
+> | `refresh_spec` | `openapi_refresh` |
+> | (신규) | `openapi_get` — 캐시된 deref 본문 반환 |
+> | (신규) | `openapi_status` — 캐시 메타만 조회 |
+>
+> agent-toolkit 은 같은 라이브러리 위에 (1) Claude Code MCP 진입점,
+> (2) opencode 플러그인, (3) 동일한 동작의 `openapi-mcp` 단독 CLI 진입점
+> (`bin/openapi-mcp`) 을 모두 제공합니다. 이 저장소는 흡수 PR (agent-toolkit#65)
+> 머지 후 archive 됩니다 — 새 사용 / 기여는 agent-toolkit 으로 부탁드립니다.
+>
+> 단독 CLI 사용 가이드 (PR 머지 후 `main` 으로 이동): [agent-toolkit#65 의 `docs/openapi-mcp.md`](https://github.com/minjun0219/agent-toolkit/blob/claude/refactor-duplicate-code-68M49/docs/openapi-mcp.md).
+>
+> ---
+
 사내 OpenAPI / Swagger 명세를 환경별로 등록해두고, MCP(stdio)로 노출해서
 Claude Code · Claude Desktop 같은 MCP host가 자연어로 endpoint를 탐색하고
 스펙을 가져갈 수 있게 해주는 CLI 도구.
