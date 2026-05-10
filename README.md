@@ -1,5 +1,13 @@
 # openapi-mcp
 
+> ⚠️ **이 저장소는 [`minjun0219/agent-toolkit`](https://github.com/minjun0219/agent-toolkit) 으로 흡수되었습니다 (v0.2 부터).**
+> agent-toolkit 은 같은 코드 / 같은 7 tool 표면 위에 (1) Claude Code MCP 진입점,
+> (2) opencode 플러그인, (3) 동일한 `openapi-mcp` 단독 CLI 진입점 (`bin/openapi-mcp`)
+> 을 모두 제공합니다. 이 저장소는 곧 archive 됩니다 — 새 사용 / 기여는 agent-toolkit
+> 으로 부탁드립니다. 단독 CLI 사용 가이드: [`docs/openapi-mcp.md`](https://github.com/minjun0219/agent-toolkit/blob/main/docs/openapi-mcp.md).
+>
+> ---
+
 사내 OpenAPI / Swagger 명세를 환경별로 등록해두고, MCP(stdio)로 노출해서
 Claude Code · Claude Desktop 같은 MCP host가 자연어로 endpoint를 탐색하고
 스펙을 가져갈 수 있게 해주는 CLI 도구.
