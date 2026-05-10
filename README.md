@@ -1,10 +1,14 @@
 # openapi-mcp
 
 > ⚠️ **이 저장소는 [`minjun0219/agent-toolkit`](https://github.com/minjun0219/agent-toolkit) 으로 흡수되었습니다 (v0.2 부터).**
-> agent-toolkit 은 같은 코드 / 같은 7 tool 표면 위에 (1) Claude Code MCP 진입점,
-> (2) opencode 플러그인, (3) 동일한 `openapi-mcp` 단독 CLI 진입점 (`bin/openapi-mcp`)
-> 을 모두 제공합니다. 이 저장소는 곧 archive 됩니다 — 새 사용 / 기여는 agent-toolkit
-> 으로 부탁드립니다. 단독 CLI 사용 가이드: [`docs/openapi-mcp.md`](https://github.com/minjun0219/agent-toolkit/blob/main/docs/openapi-mcp.md).
+> 코어 (deref / swagger 2→3 / conditional GET / 디스크 캐시) 는 그대로,
+> tool 표면은 6 → 7 로 살짝 재구성되었습니다 — 기존 `list_specs` /
+> `list_environments` / `refresh_spec` 은 `openapi_envs` / `openapi_refresh` 로
+> 이름이 바뀌었고 `openapi_status` 가 추가됩니다. agent-toolkit 은 같은
+> 라이브러리 위에 (1) Claude Code MCP 진입점, (2) opencode 플러그인, (3) 동일한
+> 동작의 `openapi-mcp` 단독 CLI 진입점 (`bin/openapi-mcp`) 을 모두 제공합니다.
+> 이 저장소는 곧 archive 됩니다 — 새 사용 / 기여는 agent-toolkit 으로 부탁드립니다.
+> 단독 CLI 사용 가이드: [`docs/openapi-mcp.md`](https://github.com/minjun0219/agent-toolkit/blob/main/docs/openapi-mcp.md).
 >
 > ---
 
